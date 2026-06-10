@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ハラスメント回避RPG 〜新米職員の10日間〜</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; }
+  .grad-bg { background: linear-gradient(135deg, #fce7f3 0%, #ede9fe 50%, #dbeafe 100%); }
+  .btn-risky { background: linear-gradient(135deg, #fed7aa, #fce7f3); border: 2px solid #fdba74; }
+  .btn-risky:hover { background: linear-gradient(135deg, #fdba74, #fbcfe8); }
+  .btn-safe  { background: linear-gradient(135deg, #bfdbfe, #d1fae5); border: 2px solid #93c5fd; }
+  .btn-safe:hover  { background: linear-gradient(135deg, #93c5fd, #6ee7b7); }
+  .btn-start { background: linear-gradient(135deg, #f472b6, #a855f7); }
+  .btn-next  { background: linear-gradient(135deg, #f472b6, #a855f7); }
+  .scale-hover:hover { transform: scale(1.02); }
+  details summary { list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+</style>
+</head>
+<body class="grad-bg min-h-screen">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+const SCENES = [
+  {
+    id: 1, title: "初日の自己紹介", type: "コミュニケーション全般",
+    imageUrl: "",
+    npc_name: "田中課長（50代男性・直属の上司）",
+    situation: "辞令交付を終えた朝、総務課のミーティングで全員の前に立たされた。10人ほどの視線が自分に集まっている。田中課長が「では一言どうぞ」と促してくれた。",
+    npc_dialogue: "出身地や趣味など、自由に話してもらって構いませんよ。",
+    choice_risky: "「彼女もいないし、仕事一本で頑張ります！」",
+    choice_safe: "「地元は○○ですが、この土地にも早く慣れたいと思います。よろしくお願いします。」",
+    result_risky: "笑いを取ろうとした一言だったが、プライベートを自ら晒す自己紹介は「プライベートを話すのが当然」という空気を生みかねない。特に「彼女いない」発言は後々セクシャルな話題に踏み込みやすい地雷になる場合がある。",
+    result_safe: "簡潔で情報が適切。自分のプライベートを過度に晒さないことで、同僚にも「聞かなくていい」という基準を自然と示せた。初日から心理的安全性の高い自己紹介になった。"
+  },
+  {
+    id: 2, title: "先輩とのランチ", type: "セクハラ・プライバシー配慮",
+    imageUrl: "",
+    npc_name: "佐藤さん（20代後半女性・同じ課の先輩職員）",
+    situation: "配属2日目、先輩の佐藤さんがランチに誘ってくれた。近くの定食屋で料理を待つ間、会話が途切れた。話題を何かふってみようかと思った。",
+    npc_dialogue: "仕事、もう少しわかってきましたか？わからないことあったらなんでも聞いてくださいね。",
+    choice_risky: "「ありがとうございます。ところで佐藤さんって彼氏いるんですか？同期に聞かれて気になって。」",
+    choice_safe: "「ありがとうございます。引き継ぎ資料を見ていると、○○業務が複雑そうで…少し教えてもらえますか？」",
+    result_risky: "本人は軽い雑談のつもりでも、交際状況への質問は相手が答えたくない場合に断りにくい。「同期に聞かれて」という言い回しは責任転嫁にもなり、不快感を与えやすい。",
+    result_safe: "業務の話題に自然につなげることで、先輩も答えやすく、信頼関係を築く良いきっかけになった。プライベートに踏み込まない姿勢が相手への敬意を示している。"
+  },
+  {
+    id: 3, title: "ベテランへの質問", type: "エイジハラスメント",
+    imageUrl: "",
+    npc_name: "木村さん（58歳男性・庶務担当のベテラン職員）",
+    situation: "業務システムの入力方法がわからず、庶務担当のベテラン木村さんに聞きに行った。デスクに近づくと、難しそうな顔でキーボードを叩いていた。",
+    npc_dialogue: "…なんですか？（少し面倒くさそうな様子）",
+    choice_risky: "「あ、えっと、このシステム操作ってわかりますか？ベテランの方ならわかりますよね、きっと。」",
+    choice_safe: "「お忙しいところすみません。○○の入力画面の操作を教えていただけますか？マニュアルを見たのですがよくわからなくて。」",
+    result_risky: "「ベテランならわかるはず」という言い方は、相手への先入観や圧力になりやすい。できなかった場合のプレッシャーや、年齢・経験を勝手に前提にする点がハラスメントの素地になる。",
+    result_safe: "自分が事前に調べたことを示した上でお願いすることで、相手の負担感を減らし、礼儀正しい印象を与えられた。具体的な質問も答えやすさにつながっている。"
+  },
+  {
+    id: 4, title: "窓口でのカスハラ対応", type: "カスハラ対応",
+    imageUrl: "",
+    npc_name: "伊藤さん（県民の方・60代男性）",
+    situation: "窓口で書類の手続きを案内していると、60代くらいの男性県民・伊藤さんが突然語気を強めてきた。「こんな書類が必要なんて聞いてない！お前らの説明が悪いんだろ！」と声を荒げており、周囲の視線が集まりはじめている。",
+    npc_dialogue: "「上の者を呼べ！お前じゃ話にならん！いつまで待たせるんだ！」",
+    choice_risky: "「申し訳ありません、私の説明が至らなかったようです。おっしゃる通りです…」とひたすら謝り続け、要求に従って上司を呼ぶ。",
+    choice_safe: "「ご不便をおかけして申し訳ありません。ただ、必要書類についてはご案内の通りでして、一緒に確認させてください。」と落ち着いて説明を続ける。",
+    result_risky: "謝り続けることで相手の主張を認めた形になり、要求がさらにエスカレートしやすい。根拠のない謝罪は組織としての対応方針を崩すことにもつながる。理不尽な要求には毅然とした姿勢が必要。",
+    result_safe: "不快をかけたことへの配慮は示しつつ、事実と手続きの説明は崩さない。感情的にならず落ち着いた対応が、相手を冷静にさせる効果もある。一人で抱え込まず、長引く場合は上司や同僚に状況を共有することも重要。"
+  },
+  {
+    id: 5, title: "育休明けの同僚との会話", type: "マタハラ・育児配慮",
+    imageUrl: "",
+    npc_name: "中村さん（30代女性・育休から復帰したばかりの同僚）",
+    situation: "1年の育休から復帰した中村さんと来月の業務分担を話し合っている。中村さんは「できる限り迷惑をかけないようにしたい」と何度も恐縮している様子。",
+    npc_dialogue: "保育園のお迎えがあるので17時には上がりたいのですが、できるだけ貢献したいと思っています…。",
+    choice_risky: "「まあ、子育て中は仕方ないですよね。無理しなくていいですよ、重要な案件は他の人に回すので。」",
+    choice_safe: "「17時退勤を前提に一緒に段取りを考えましょう。時間内でカバーできる役割を整理しましょう。」",
+    result_risky: "「仕方ない」「重要な案件は外す」という言い回しは、本人の意欲を否定し、戦力外扱いをする発言になりうる。善意でも、育児を理由にした役割縮小はマタハラに該当する場合がある。",
+    result_safe: "時間的制約を前提条件として受け入れた上で、一緒に役割を考える姿勢が信頼を生む。「できない」ではなく「どうすればできるか」を一緒に探ることが重要。"
+  },
+  {
+    id: 6, title: "後輩のミスへの指摘", type: "パワハラ・指導",
+    imageUrl: "",
+    npc_name: "加藤くん（22歳男性・今春採用の後輩職員）",
+    situation: "後輩の加藤くんが作成した議会への報告書に、数字の誤りが3箇所見つかった。締切は明日の朝。加藤くんはまだミスに気づいていない様子で、普通に作業をしている。",
+    npc_dialogue: "（ミスに気づかずデスクで作業中）",
+    choice_risky: "「ちょっと、この数字全部間違ってるじゃないですか！なんで確認しないんですか！」と周囲に聞こえる声で指摘する。",
+    choice_safe: "「加藤さん、少し時間いいですか」と声をかけ、別の場所へ移動してから「ここ確認してほしいんですが」と静かに伝える。",
+    result_risky: "ミスの指摘自体は必要だが、大声・人前での叱責はパワハラになりうる。後輩が委縮するだけでなく、周囲の職場環境にも悪影響を及ぼす。",
+    result_safe: "別の場所で落ち着いて指摘することで、後輩の尊厳を守りながら問題を解決できる。「なぜミスが起きたか」を一緒に振り返るとさらに良い指導になる。"
+  },
+  {
+    id: 7, title: "歓迎会のお酒の席", type: "アルハラ",
+    imageUrl: "",
+    npc_name: "松本課長補佐（40代男性・課長補佐）",
+    situation: "自分の歓迎会、飲み放題の居酒屋。松本課長補佐がビールを注ぎに来た。隣を見ると、下戸らしき後輩の川島さんがウーロン茶を飲んでいる。松本さんが「川島くんも飲まないの？」と言いながらビールを差し出している。",
+    npc_dialogue: "せっかくの歓迎会なんだから、一杯くらいいいじゃないですか。",
+    choice_risky: "（川島さんのグラスにビールを注ぎながら）「そうですよ、たまにはいいじゃないですか！乾杯くらい！」と便乗する。",
+    choice_safe: "「川島さん、飲めないなら気にしなくていいですよ。僕も最近あんまり強くなくて。」と自然にフォローを入れる。",
+    result_risky: "飲めない・飲まない人にお酒を強いる行為はアルコールハラスメント。上司の行動に同調することで、本人への圧力をさらに強めてしまっている。",
+    result_safe: "フォローの一言が川島さんへのプレッシャーを和らげ、断りやすい空気を作った。自分のことを絡めた言い方で自然にフォローできている点も上手い。"
+  },
+  {
+    id: 8, title: "SNSでのプライバシー話題", type: "プライバシー・SNS",
+    imageUrl: "",
+    npc_name: "橋本さん（20代男性・別の課の同期職員）",
+    situation: "昼休みの休憩室。同期の橋本さんが「同じ課の山田さんのインスタ見た？彼氏らしき人と写ってたよ。意外な人でびっくりした」とニヤニヤしながら話しかけてきた。",
+    npc_dialogue: "ねえ知ってた？山田さん、付き合ってる人いるみたいだよ。インスタで見た。",
+    choice_risky: "「え、マジで！誰ですか？その人も公務員？教えてくださいよ。」と食いつく。",
+    choice_safe: "「プライベートのことはあまり広めない方がいいんじゃないかな。本人も職場には知られたくないかもしれないし。」と穏やかに返す。",
+    result_risky: "交際相手などのプライベートな情報を職場で拡散することはプライバシーの侵害になりうる。興味本位で質問することで情報拡散を加速させてしまう。",
+    result_safe: "本人の意図せぬ情報拡散を防ぐ一言が、山田さんの権利を守る。この姿勢によって自分自身のプライバシーも守られる職場環境につながっていく。"
+  },
+  {
+    id: 9, title: "終業間際の緊急依頼", type: "パワハラ・時間外",
+    imageUrl: "",
+    npc_name: "西村課長（50代男性・課長）",
+    situation: "定時5分前、西村課長から「明日朝イチで議員向け資料が必要になった。誰かに頼んでくれ」と言われた。担当範囲的に、子育て中の斎藤さんに振るのが自然だが、もう退勤準備をしている。",
+    npc_dialogue: "急で悪いけど、明日8時半までに資料まとめてほしい。適当に誰かに振っておいて。",
+    choice_risky: "（そのまま斎藤さんのデスクへ行き）「斎藤さん、課長から急ぎで資料頼まれたんですが、今日残れますか？」と聞く。",
+    choice_safe: "「少し確認させてください」と課長に断ってから、内容と緊急度を確認し、自分で引き受けるか課長に再調整を求める。",
+    result_risky: "子育て中の職員に突発的な残業を振ることは、本人が断りにくい状況を作るパワハラになりうる。「適当に誰かに」という指示をそのまま弱い立場の人に流すことも問題。",
+    result_safe: "まず内容を確認することで、本当に急ぎかを判断できる。自分で対応できる場合は引き受け、課長への再調整を提案することで、不適切な指示を連鎖させない行動になっている。"
+  },
+  {
+    id: 10, title: "悩む同僚への声かけ", type: "メンタルヘルス・心理的安全性",
+    imageUrl: "",
+    npc_name: "村田さん（20代女性・同じ課の同期）",
+    situation: "最近元気がない同期の村田さん。休憩室で一人ぼんやりとコーヒーカップを見つめている。ミスや遅刻が続いていると聞いたばかりだ。",
+    npc_dialogue: "（こちらに気づいていない様子で、ぼんやりしている）",
+    choice_risky: "「村田さん、最近ちょっとミス多くないですか？しっかりしないと評価に関わりますよ。」と心配のつもりで話しかける。",
+    choice_safe: "「村田さん、最近どうですか。よかったら話しませんか」と静かに声をかけ、隣に座る。",
+    result_risky: "心配のつもりでも、ミスや評価に言及することで相手を追い詰めてしまう。メンタルが不安定な時期に「しっかりしろ」系の言葉は追い打ちになりやすい。",
+    result_safe: "「話しませんか」という声かけは、相手に選択の余地を与えている。答えを求めず、ただそこにいることが心理的安全性の土台になる。解決しようとしないことも時に重要な支援。"
+  }
+];
+
+const TOTAL = SCENES.length;
+const BAD_THRESHOLD = 3;
+
+function App() {
+  const [phase, setPhase] = useState('intro');
+  const [idx, setIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [history, setHistory] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const scene = SCENES[idx];
+  const meterPct = Math.min((score / BAD_THRESHOLD) * 100, 100);
+  const meterColor = score === 0 ? '#4ade80' : score === 1 ? '#facc15' : score === 2 ? '#fb923c' : '#ef4444';
+  const meterLabel = score === 0 ? '良好' : score === 1 ? '注意' : score === 2 ? '警告' : '危険';
+  const badEnd = score >= BAD_THRESHOLD;
+
+  const handleChoice = (which) => {
+    const isRisky = which === 'risky';
+    if (isRisky) setScore(s => s + 1);
+    setHistory(h => [...h, {
+      title: scene.title,
+      choice: isRisky ? scene.choice_risky : scene.choice_safe,
+      wasRisky: isRisky
+    }]);
+    setSelected(which);
+    setPhase('result');
+  };
+
+  const next = () => {
+    if (idx + 1 >= TOTAL) {
+      setPhase('ending');
+    } else {
+      setIdx(i => i + 1);
+      setSelected(null);
+      setPhase('scene');
+    }
+  };
+
+  const reset = () => {
+    setPhase('intro');
+    setIdx(0);
+    setScore(0);
+    setHistory([]);
+    setSelected(null);
+    setDetailOpen(false);
+  };
+
+  // ===== INTRO =====
+  if (phase === 'intro') return (
+    <div style={{minHeight:'100vh'}} className="grad-bg flex items-center justify-center p-6">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full text-center" style={{maxWidth:'420px'}}>
+        <div style={{fontSize:'3rem'}} className="mb-3">🏛️✨</div>
+        <h1 className="text-2xl font-bold mb-1" style={{color:'#6b21a8'}}>ハラスメント回避RPG</h1>
+        <p className="text-sm mb-6" style={{color:'#9333ea'}}>〜新米職員の10日間〜</p>
+        <div className="rounded-2xl p-4 mb-6 text-left text-sm" style={{background:'#faf5ff',color:'#374151',lineHeight:'1.8'}}>
+          <p>あなたは県庁に配属された<strong>新米行政職員（20代後半・男性）</strong>。</p>
+          <p style={{marginTop:'8px'}}>10の場面で、ついやってしまいがちな一言か、相手を尊重した一言か、どちらを選びますか？</p>
+          <p className="text-xs mt-3" style={{color:'#9333ea'}}>⚠️ リスクのある選択を{BAD_THRESHOLD}回以上選ぶとバッドエンドに…</p>
+        </div>
+        <button onClick={() => setPhase('scene')} className="btn-start w-full text-white font-bold py-3 rounded-full shadow-lg" style={{border:'none',cursor:'pointer',fontSize:'1rem'}}>
+          出勤する
+        </button>
+      </div>
+    </div>
+  );
+
+  // ===== ENDING =====
+  if (phase === 'ending') return (
+    <div style={{minHeight:'100vh'}} className="grad-bg flex items-center justify-center p-6">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full" style={{maxWidth:'500px'}}>
+        <div className="text-center mb-5">
+          <div style={{fontSize:'3.5rem'}} className="mb-2">{badEnd ? '😰' : '🌸'}</div>
+          <h2 className="text-2xl font-bold mb-1" style={{color: badEnd ? '#dc2626' : '#16a34a'}}>{badEnd ? 'バッドエンド' : 'ノーマルエンド'}</h2>
+          <p className="text-xs" style={{color:'#9ca3af'}}>{badEnd ? '問題発生ルート' : '信頼される職員ルート'}</p>
+        </div>
+        <div className="rounded-2xl p-5 mb-5 text-sm" style={{background: badEnd ? '#fef2f2' : '#f0fdf4', lineHeight:'1.8', color:'#374151'}}>
+          {badEnd ? (
+            <>
+              <p>10日間が過ぎた頃、人事課から呼び出しがあった。複数の同僚から相談が寄せられているという。</p>
+              <p style={{marginTop:'8px'}}>「悪気はなかった」では済まされない。研修受講と環境改善計画の作成が言い渡された。</p>
+              <p className="text-xs mt-3" style={{color:'#dc2626'}}>ハラスメントは、本人の意図に関わらず<strong>受け手がどう感じたか</strong>で判断されます。「これくらい大丈夫」の積み重ねが信頼を失わせます。</p>
+            </>
+          ) : (
+            <>
+              <p>10日間が過ぎ、課長から「あなたが来てから雰囲気が良くなった気がする」と声をかけられた。</p>
+              <p style={{marginTop:'8px'}}>同僚たちも自然と相談ごとを持ちかけてくれるようになった。新米職員としての一歩は、まずまずの滑り出しのようだ。</p>
+              <p className="text-xs mt-3" style={{color:'#16a34a'}}>相手を尊重するコミュニケーションは、特別なスキルではなく<strong>「相手の立場に立って一呼吸置く」</strong>習慣の積み重ねです。</p>
+            </>
+          )}
+        </div>
+        <div className="mb-5">
+          <button onClick={() => setDetailOpen(!detailOpen)} className="text-sm font-bold" style={{color:'#9333ea',background:'none',border:'none',cursor:'pointer'}}>
+            {detailOpen ? '▲' : '▼'} 📝 選択の振り返り
+          </button>
+          {detailOpen && (
+            <div className="mt-3" style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              {history.map((h, i) => (
+                <div key={i} className="text-xs p-2 rounded-lg" style={{background: h.wasRisky ? '#fef2f2' : '#f0fdf4', color: h.wasRisky ? '#991b1b' : '#166534'}}>
+                  <div className="font-bold">{i+1}. {h.title} {h.wasRisky ? '⚠️' : '✓'}</div>
+                  <div style={{color:'#4b5563',marginTop:'4px'}}>{h.choice}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <button onClick={reset} className="btn-next w-full text-white font-bold py-3 rounded-full shadow-lg" style={{border:'none',cursor:'pointer',fontSize:'1rem'}}>もう一度プレイする</button>
+      </div>
+    </div>
+  );
+
+  // ===== SCENE / RESULT =====
+  return (
+    <div style={{minHeight:'100vh'}} className="grad-bg p-4">
+      <div style={{maxWidth:'500px',margin:'0 auto'}}>
+
+        {/* ヘッダー */}
+        <div className="bg-white rounded-2xl shadow-lg p-4 mb-4">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+            <span className="text-xs font-bold" style={{color:'#9333ea'}}>{idx+1}/{TOTAL}日目：{scene.title}</span>
+            <span className="text-xs font-bold px-3 py-1 rounded-full text-white" style={{background:meterColor}}>{meterLabel}</span>
+          </div>
+          <div style={{display:'flex',gap:'4px',marginBottom:'8px'}}>
+            {SCENES.map((_, i) => (
+              <div key={i} style={{flex:1,height:'6px',borderRadius:'9999px',background: i < idx ? '#a855f7' : i === idx ? '#c084fc' : '#e5e7eb'}} />
+            ))}
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+            <span className="text-xs" style={{color:'#9ca3af'}}>警戒</span>
+            <div style={{flex:1,background:'#f3f4f6',borderRadius:'9999px',height:'8px',overflow:'hidden'}}>
+              <div style={{height:'100%',background:meterColor,width:`${meterPct}%`,transition:'width 0.4s'}} />
+            </div>
+            <span className="text-xs" style={{color:'#6b7280'}}>{score}/{BAD_THRESHOLD}</span>
+          </div>
+        </div>
+
+        {/* シーンカード */}
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-4">
+          <span className="text-xs font-bold px-2 py-1 rounded-full" style={{background:'#faf5ff',color:'#9333ea'}}>{scene.type}</span>
+          <p className="text-sm mt-3 mb-4" style={{color:'#374151',lineHeight:'1.8'}}>{scene.situation}</p>
+
+          {/* NPCセリフ */}
+          <div className="rounded-2xl p-4 mb-4" style={{background:'#faf5ff'}}>
+            <div className="text-xs font-bold mb-1" style={{color:'#9333ea'}}>💬 {scene.npc_name}</div>
+            <p className="text-sm" style={{color:'#1f2937'}}>{scene.npc_dialogue}</p>
+          </div>
+
+          {/* 画像スペース */}
+          <div className="mb-4">
+            {scene.imageUrl ? (
+              <img src={scene.imageUrl} alt={scene.title} style={{width:'100%',borderRadius:'1rem',objectFit:'cover',maxHeight:'192px'}} />
+            ) : (
+              <div style={{width:'100%',borderRadius:'1rem',background:'#f3f4f6',border:'2px dashed #d1d5db',display:'flex',alignItems:'center',justifyContent:'center',height:'80px',color:'#9ca3af',fontSize:'0.75rem'}}>
+                🖼️ シーン画像をここに表示（imageUrl を設定してください）
+              </div>
+            )}
+          </div>
+
+          {/* 選択肢 or 結果 */}
+          {phase === 'scene' ? (
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              <p className="text-xs font-bold text-center" style={{color:'#9ca3af'}}>どう返事をしますか？</p>
+              <button onClick={() => handleChoice('risky')} className="btn-risky scale-hover text-left text-sm font-medium py-4 px-4 rounded-2xl" style={{cursor:'pointer',lineHeight:'1.6',transition:'transform 0.15s'}}>
+                A. {scene.choice_risky}
+              </button>
+              <button onClick={() => handleChoice('safe')} className="btn-safe scale-hover text-left text-sm font-medium py-4 px-4 rounded-2xl" style={{cursor:'pointer',lineHeight:'1.6',transition:'transform 0.15s'}}>
+                B. {scene.choice_safe}
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div className="rounded-2xl p-4 mb-4" style={{background: selected === 'risky' ? '#fef2f2' : '#f0fdf4', border: `2px solid ${selected === 'risky' ? '#fca5a5' : '#86efac'}`}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                  <span style={{fontSize:'1.25rem'}}>{selected === 'risky' ? '⚠️' : '✨'}</span>
+                  <span className="text-xs font-bold" style={{color: selected === 'risky' ? '#dc2626' : '#16a34a'}}>
+                    {selected === 'risky' ? 'リスクのある選択' : '配慮ある選択'}
+                  </span>
+                </div>
+                <p className="text-xs mb-1" style={{color:'#9ca3af'}}>あなたの返答：</p>
+                <p className="text-sm mb-3" style={{color:'#1f2937'}}>{selected === 'risky' ? scene.choice_risky : scene.choice_safe}</p>
+                <p className="text-xs mb-1" style={{color:'#9ca3af'}}>解説：</p>
+                <p className="text-sm" style={{color:'#374151',lineHeight:'1.8'}}>{selected === 'risky' ? scene.result_risky : scene.result_safe}</p>
+              </div>
+              <button onClick={next} className="btn-next w-full text-white font-bold py-3 rounded-full shadow-lg" style={{border:'none',cursor:'pointer',fontSize:'1rem'}}>
+                {idx+1 >= TOTAL ? '結末を見る' : '次の日へ →'}
+              </button>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
