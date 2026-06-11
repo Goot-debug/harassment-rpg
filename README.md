@@ -31,7 +31,7 @@
 
 ## 🚀 使い方
 
-1. `` をブラウザで開く
+1. `https://raw.githack.com/Goot-debug/harassment-rpg/refs/heads/main/harassment-rpg-html.html` をブラウザで開く
 2. 「出勤する」ボタンでスタート
 3. 各シーンで A・B いずれかの選択肢を選ぶ
 4. 全10シーンをクリアしてエンディングを確認する
