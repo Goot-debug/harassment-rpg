@@ -31,7 +31,7 @@ const { useState } = React;
 const SCENES = [
   {
     id: 1, title: "初日の自己紹介", type: "コミュニケーション全般",
-    imageUrl: "",
+    imageUrl: "images/id1_Notalk.jpg",
     npc_name: "田中課長（50代男性・直属の上司）",
     situation: "辞令交付を終えた朝、総務課のミーティングで全員の前に立たされた。10人ほどの視線が自分に集まっている。田中課長が「では一言どうぞ」と促してくれた。",
     npc_dialogue: "出身地や趣味など、自由に話してもらって構いませんよ。",
@@ -42,7 +42,7 @@ const SCENES = [
   },
   {
     id: 2, title: "先輩とのランチ", type: "セクハラ・プライバシー配慮",
-    imageUrl: "images/id1_Notalk.jpg",
+    imageUrl: "images/id2.jpg",
     npc_name: "佐藤さん（20代後半女性・同じ課の先輩職員）",
     situation: "配属2日目、先輩の佐藤さんがランチに誘ってくれた。近くの定食屋で料理を待つ間、会話が途切れた。話題を何かふってみようかと思った。",
     npc_dialogue: "仕事、もう少しわかってきましたか？わからないことあったらなんでも聞いてくださいね。",
@@ -53,7 +53,7 @@ const SCENES = [
   },
   {
     id: 3, title: "ベテランへの質問", type: "エイジハラスメント",
-    imageUrl: "images/id2.jpg",
+    imageUrl: "images/id3.jpg",
     npc_name: "木村さん（58歳男性・庶務担当のベテラン職員）",
     situation: "業務システムの入力方法がわからず、庶務担当のベテラン木村さんに聞きに行った。デスクに近づくと、難しそうな顔でキーボードを叩いていた。",
     npc_dialogue: "…なんですか？（少し面倒くさそうな様子）",
@@ -64,7 +64,7 @@ const SCENES = [
   },
   {
     id: 4, title: "窓口でのカスハラ対応", type: "カスハラ対応",
-    imageUrl: "images/id3.jpg",
+    imageUrl: "",
     npc_name: "伊藤さん（県民の方・60代男性）",
     situation: "窓口で書類の手続きを案内していると、60代くらいの男性県民・伊藤さんが突然語気を強めてきた。「こんな書類が必要なんて聞いてない！お前らの説明が悪いんだろ！」と声を荒げており、周囲の視線が集まりはじめている。",
     npc_dialogue: "「上の者を呼べ！お前じゃ話にならん！いつまで待たせるんだ！」",
@@ -291,7 +291,7 @@ function App() {
           {/* 画像スペース */}
           <div className="mb-4">
             {scene.imageUrl ? (
-              <img src={scene.imageUrl} alt={scene.title} style={{width:'100%',borderRadius:'1rem',objectFit:'cover',maxHeight:'192px'}} />
+              <img src={scene.imageUrl} alt={scene.title} style={{width:'100%',borderRadius:'1rem',objectFit:'cover',maxHeight:'300px'}} />
             ) : (
               <div style={{width:'100%',borderRadius:'1rem',background:'#f3f4f6',border:'2px dashed #d1d5db',display:'flex',alignItems:'center',justifyContent:'center',height:'80px',color:'#9ca3af',fontSize:'0.75rem'}}>
                 🖼️ シーン画像をここに表示（imageUrl を設定してください）
